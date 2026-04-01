@@ -1,9 +1,11 @@
 import { getPostBySlug, getAllPosts } from '@/lib/blog'
-import { MDXRemote } from 'next-mdx-remote/rsc'
-import remarkGfm from 'remark-gfm'
+import { marked } from 'marked'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+
+// Configure marked for GFM (tables, strikethrough, task lists, etc.)
+marked.use({ gfm: true, breaks: false })
 
 interface Props {
   params: { slug: string }
@@ -26,6 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(params.slug)
   if (!post) notFound()
+
+  // Convert markdown to HTML using marked (reliable, battle-tested)
+  const htmlContent = await Promise.resolve(marked.parse(post.content)) as string
 
   return (
     <div className="min-h-screen pt-24 pb-20 px-6 relative">
@@ -59,27 +64,21 @@ export default async function BlogPostPage({ params }: Props) {
             </time>
           </header>
 
-          <div className="prose prose-invert prose-lg max-w-none
-            prose-headings:font-syne prose-headings:font-bold prose-headings:text-text-primary
-            prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
-            prose-p:text-text-secondary prose-p:leading-relaxed
-            prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-text-primary
-            prose-code:text-violet-300 prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-surface-2 prose-pre:border prose-pre:border-border prose-pre:rounded-xl
-            prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-blockquote:bg-surface/30 prose-blockquote:rounded-r-xl prose-blockquote:px-6
-            prose-li:text-text-secondary
-            prose-hr:border-border
-            prose-img:rounded-xl">
-            <MDXRemote
-              source={post.content}
-              options={{
-                mdxOptions: {
-                  remarkPlugins: [remarkGfm],
-                },
-              }}
-            />
-          </div>
+          <div
+            className="prose prose-invert prose-lg max-w-none
+              prose-headings:font-syne prose-headings:font-bold prose-headings:text-text-primary
+              prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+              prose-p:text-text-secondary prose-p:leading-relaxed
+              prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-text-primary
+              prose-code:text-violet-300 prose-code:bg-surface-2 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-surface-2 prose-pre:border prose-pre:border-border prose-pre:rounded-xl
+              prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-blockquote:rounded-r-xl prose-blockquote:px-6
+              prose-li:text-text-secondary
+              prose-hr:border-border
+              prose-img:rounded-xl"
+            dangerouslySetInnerHTML={{ __html: htmlContent }}
+          />
         </article>
       </div>
     </div>

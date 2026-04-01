@@ -10,7 +10,6 @@ export default function ScrollThreeScene() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-
     gsap.registerPlugin(ScrollTrigger)
 
     const canvas = canvasRef.current
@@ -19,218 +18,177 @@ export default function ScrollThreeScene() {
     // ── Renderer ──────────────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     // ── Scene + Camera ─────────────────────────────────────────────────────
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200)
-    camera.position.set(0, 0, 8)
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300)
+    camera.position.set(0, 0, 12)
 
-    // ── Lights ─────────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0x1a0a2e, 0.8))
+    // ── Build a particle layer ─────────────────────────────────────────────
+    // tunnelMix: fraction of particles distributed in a Z-axis tunnel (0 = pure sphere)
+    const buildLayer = (
+      count: number,
+      size: number,
+      opacity: number,
+      palette: number[],
+      tunnelMix: number
+    ): { pts: THREE.Points; mat: THREE.PointsMaterial } => {
+      const pos = new Float32Array(count * 3)
+      const col = new Float32Array(count * 3)
+      const paletteColors = palette.map((hex) => new THREE.Color(hex))
 
-    const lightViolet = new THREE.PointLight(0x6366f1, 4, 30)
-    lightViolet.position.set(-3, 3, 3)
-    scene.add(lightViolet)
+      for (let i = 0; i < count; i++) {
+        let x: number, y: number, z: number
 
-    const lightPink = new THREE.PointLight(0xec4899, 2.5, 25)
-    lightPink.position.set(3, -2, 2)
-    scene.add(lightPink)
+        if (i / count < tunnelMix) {
+          // Cylindrical tunnel along Z — creates the "flying through" sensation
+          const angle = Math.random() * Math.PI * 2
+          const radius = 1.5 + Math.random() * 7
+          x = Math.cos(angle) * radius
+          y = Math.sin(angle) * radius
+          z = (Math.random() - 0.5) * 44
+        } else {
+          // Spherical nebula cloud
+          const r = 5 + Math.random() * 20
+          const theta = Math.random() * Math.PI * 2
+          const phi = Math.acos(2 * Math.random() - 1)
+          x = r * Math.sin(phi) * Math.cos(theta)
+          y = r * Math.sin(phi) * Math.sin(theta)
+          z = r * Math.cos(phi)
+        }
 
-    const lightAmber = new THREE.PointLight(0xf59e0b, 1.5, 20)
-    lightAmber.position.set(0, -5, 1)
-    scene.add(lightAmber)
+        pos[i * 3] = x
+        pos[i * 3 + 1] = y
+        pos[i * 3 + 2] = z
 
-    // ── Hero group (central sculpture) ────────────────────────────────────
-    const heroGroup = new THREE.Group()
-    scene.add(heroGroup)
+        const c = paletteColors[Math.floor(Math.random() * paletteColors.length)]
+        col[i * 3] = c.r
+        col[i * 3 + 1] = c.g
+        col[i * 3 + 2] = c.b
+      }
 
-    // Outer wireframe icosahedron
-    const outerMesh = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(2.1, 1),
-      new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.28 })
-    )
-    heroGroup.add(outerMesh)
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3))
 
-    // Inner solid octahedron (phong shaded)
-    const innerMesh = new THREE.Mesh(
-      new THREE.OctahedronGeometry(1.1, 2),
-      new THREE.MeshPhongMaterial({
-        color: 0x6366f1,
-        emissive: 0x2d1b69,
-        specular: 0xec4899,
-        shininess: 120,
+      const mat = new THREE.PointsMaterial({
+        size,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.75,
+        opacity,
+        sizeAttenuation: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       })
-    )
-    heroGroup.add(innerMesh)
 
-    // Orbital ring 1 (pink)
-    const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(2.9, 0.022, 8, 120),
-      new THREE.MeshBasicMaterial({ color: 0xec4899, transparent: true, opacity: 0.5 })
-    )
-    ring1.rotation.x = Math.PI * 0.3
-    heroGroup.add(ring1)
-
-    // Orbital ring 2 (purple)
-    const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(3.4, 0.016, 8, 120),
-      new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.35 })
-    )
-    ring2.rotation.x = Math.PI * 0.55
-    ring2.rotation.y = Math.PI * 0.25
-    heroGroup.add(ring2)
-
-    // ── Particle field ──────────────────────────────────────────────────────
-    const PARTICLE_COUNT = 700
-    const positions = new Float32Array(PARTICLE_COUNT * 3)
-    const colors = new Float32Array(PARTICLE_COUNT * 3)
-
-    const palette = [
-      new THREE.Color(0x6366f1),
-      new THREE.Color(0xa855f7),
-      new THREE.Color(0xec4899),
-      new THREE.Color(0xf59e0b),
-      new THREE.Color(0x8b5cf6),
-    ]
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const r = 6 + Math.random() * 12
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta)
-      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-      positions[i * 3 + 2] = r * Math.cos(phi)
-      const c = palette[Math.floor(Math.random() * palette.length)]
-      colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b
+      const pts = new THREE.Points(geo, mat)
+      scene.add(pts)
+      return { pts, mat }
     }
 
-    const particleGeo = new THREE.BufferGeometry()
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    particleGeo.setAttribute('color',    new THREE.BufferAttribute(colors, 3))
+    // ── Layer 1: Stars — tiny white/blue background stars ─────────────────
+    const { pts: stars } = buildLayer(
+      1600,
+      0.04,
+      0.9,
+      [0xe2e8f0, 0x93c5fd, 0xc4b5fd, 0xfbcfe8],
+      0
+    )
 
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.065, vertexColors: true, transparent: true, opacity: 0.6, sizeAttenuation: true,
-    })
-    const particles = new THREE.Points(particleGeo, particleMat)
-    scene.add(particles)
+    // ── Layer 2: Nebula — medium colored particles with tunnel distribution ─
+    const { pts: nebula, mat: nebulaMat } = buildLayer(
+      750,
+      0.10,
+      0.75,
+      [0x7c3aed, 0xa855f7, 0xec4899, 0x3b82f6, 0x06b6d4, 0xf0abfc],
+      0.45
+    )
 
-    // ── Secondary floating satellites ──────────────────────────────────────
-    const satelliteData: Array<{ geo: THREE.BufferGeometry; pos: [number,number,number]; color: number; spd: number }> = [
-      { geo: new THREE.OctahedronGeometry(0.45, 0),   pos: [-5.5,  3,   -3], color: 0xa855f7, spd: 0.007 },
-      { geo: new THREE.IcosahedronGeometry(0.35, 0),  pos: [ 5.5, -2,   -4], color: 0x6366f1, spd: 0.005 },
-      { geo: new THREE.TetrahedronGeometry(0.5),      pos: [-4,   -4.5, -2], color: 0xec4899, spd: 0.009 },
-      { geo: new THREE.OctahedronGeometry(0.3, 0),    pos: [ 4.5,  4.5, -5], color: 0xf59e0b, spd: 0.006 },
-      { geo: new THREE.IcosahedronGeometry(0.4, 0),   pos: [-7.5,  0,   -4], color: 0x8b5cf6, spd: 0.008 },
-      { geo: new THREE.OctahedronGeometry(0.32, 0),   pos: [ 6.5,  1.5, -3], color: 0xa855f7, spd: 0.007 },
-    ]
+    // ── Layer 3: Dust glow — large translucent colored clouds ─────────────
+    const { pts: dust, mat: dustMat } = buildLayer(
+      230,
+      0.55,
+      0.17,
+      [0x7c3aed, 0xec4899, 0x3b82f6],
+      0.2
+    )
 
-    const satellites = satelliteData.map(({ geo, pos, color }) => {
-      const mesh = new THREE.Mesh(
-        geo,
-        new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.35 })
-      )
-      mesh.position.set(...pos)
-      scene.add(mesh)
-      return mesh
-    })
+    // ── Scroll-driven camera state ─────────────────────────────────────────
+    // Camera travels FORWARD into the nebula (z decreases) then PULLS BACK
+    // to reveal the full particle universe at the contact section.
+    const s = { x: 0, y: 0, z: 12, lx: 0, ly: 0, ry: 0, op: 0.75 }
 
-    // ── Scroll-driven state (mutated by GSAP, read in render loop) ──────────
-    const st = {
-      camX: 0, camY: 0, camZ: 8,
-      lookX: 0, lookY: 0,
-      heroScale: 1,
-      particleOpacity: 0.6,
-      particleRotY: 0,
-    }
+    gsap
+      .timeline({
+        scrollTrigger: {
+          trigger: document.documentElement,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 2.5,
+        },
+      })
+      // Hero → About: first dive into the nebula
+      .to(s, { z: 7,  x:  0.8, y: -0.5, lx:  0.20, ly: -0.10, ry: 0.4, duration: 1, ease: 'none' })
+      // About → Skills: deeper, tilting
+      .to(s, { z: 3,  x: -0.6, y:  0.8, lx: -0.15, ly:  0.20, ry: 0.9, duration: 1, ease: 'none' })
+      // Skills → Projects: deepest point — camera is inside the nebula
+      .to(s, { z: 1,  x:  0.9, y: -0.3, lx:  0.25, ly: -0.15, ry: 1.5, duration: 1, ease: 'none' })
+      // Projects → Blog: easing back out
+      .to(s, { z: 5,  x:  0,   y:  0.5, lx:  0,    ly:  0.10, ry: 2.2, duration: 1, ease: 'none' })
+      // Blog → Contact: dramatic pullback — the full particle universe is revealed
+      .to(s, { z: 22, x:  0,   y:  0,   lx:  0,    ly:  0,    ry: 2.9, op: 0.52, duration: 1, ease: 'none' })
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: document.documentElement,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 2,
-      },
-    })
-
-    // About section
-    tl.to(st, { camX: -2.5, camY: 1.5, camZ: 7.5, lookX:  0.5, lookY:  0,    duration: 1, ease: 'none' })
-    // Skills section
-    .to(st,   { camX:  2,   camY: -1,  camZ: 7,   lookX: -0.3, lookY:  0.2, heroScale: 0.75, duration: 1, ease: 'none' })
-    // Projects section
-    .to(st,   { camX: -1,   camY:  2.5, camZ: 7.5, lookX:  0,  lookY: -0.5, heroScale: 0.62, particleRotY: 0.7, duration: 1, ease: 'none' })
-    // Contact section
-    .to(st,   { camX:  0,   camY:  0,  camZ: 11,  lookX:  0,  lookY:  0,   heroScale: 0.8,  particleOpacity: 0.4, duration: 1, ease: 'none' })
-
-    // ── Animation loop ──────────────────────────────────────────────────────
+    // ── Render loop ────────────────────────────────────────────────────────
     let animId: number
     const clock = new THREE.Clock()
-    const camTarget   = new THREE.Vector3()
-    const lookTarget  = new THREE.Vector3()
-    const currentLook = new THREE.Vector3()
+    const camPos  = new THREE.Vector3()
+    const lookTgt = new THREE.Vector3()
+    const curLook = new THREE.Vector3()
 
     const animate = () => {
       animId = requestAnimationFrame(animate)
       const t = clock.getElapsedTime()
 
-      // Continuous rotations
-      heroGroup.rotation.y += 0.003
-      outerMesh.rotation.x  = Math.sin(t * 0.2) * 0.15
-      outerMesh.rotation.z  = t * 0.1
-      innerMesh.rotation.x  = t * 0.15
-      innerMesh.rotation.z  = -t * 0.12
-      ring1.rotation.z     += 0.004
-      ring2.rotation.y     += 0.005
+      // Each layer rotates at a different speed for organic depth
+      stars.rotation.y  = t * 0.006 + s.ry * 0.35
+      stars.rotation.x  = t * 0.004
+      nebula.rotation.y = t * 0.014 + s.ry
+      nebula.rotation.x = t * 0.007
+      dust.rotation.y   = t * 0.009 + s.ry * 0.65
+      dust.rotation.x   = -t * 0.005
 
-      satellites.forEach((s, i) => {
-        s.rotation.x += satelliteData[i].spd
-        s.rotation.y += satelliteData[i].spd * 1.3
-      })
+      // Smooth camera movement
+      camPos.set(s.x, s.y, s.z)
+      camera.position.lerp(camPos, 0.05)
 
-      particles.rotation.y  = t * 0.02 + st.particleRotY
-      particles.rotation.x  = t * 0.01
-      particleMat.opacity   = THREE.MathUtils.lerp(particleMat.opacity, st.particleOpacity, 0.04)
+      // Smooth look-at (always gazing toward origin)
+      lookTgt.set(s.lx, s.ly, 0)
+      curLook.lerp(lookTgt, 0.05)
+      camera.lookAt(curLook)
 
-      // Animated lights
-      lightViolet.position.x = Math.sin(t * 0.3) * 5
-      lightViolet.position.y = Math.cos(t * 0.25) * 4
-      lightPink.position.x   = Math.cos(t * 0.28) * 4
-      lightPink.position.z   = Math.sin(t * 0.22) * 3
-
-      // Scroll-driven camera
-      camTarget.set(st.camX, st.camY, st.camZ)
-      camera.position.lerp(camTarget, 0.06)
-
-      // Hero scale
-      const ts = st.heroScale
-      heroGroup.scale.lerp(new THREE.Vector3(ts, ts, ts), 0.05)
-
-      // Look-at
-      lookTarget.set(st.lookX, st.lookY, 0)
-      currentLook.lerp(lookTarget, 0.05)
-      camera.lookAt(currentLook)
+      // Opacity fade on contact pullback
+      nebulaMat.opacity = THREE.MathUtils.lerp(nebulaMat.opacity, s.op, 0.03)
+      dustMat.opacity   = THREE.MathUtils.lerp(dustMat.opacity, s.op * 0.23, 0.03)
 
       renderer.render(scene, camera)
     }
-
     animate()
 
-    // ── Resize ──────────────────────────────────────────────────────────────
+    // ── Resize handler ─────────────────────────────────────────────────────
     const onResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight
       camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     }
     window.addEventListener('resize', onResize)
 
-    // ── Cleanup ─────────────────────────────────────────────────────────────
+    // ── Cleanup ────────────────────────────────────────────────────────────
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener('resize', onResize)
-      ScrollTrigger.getAll().forEach(t => t.kill())
+      ScrollTrigger.getAll().forEach((st) => st.kill())
       renderer.dispose()
       scene.clear()
     }
@@ -241,8 +199,10 @@ export default function ScrollThreeScene() {
       ref={canvasRef}
       style={{
         position: 'fixed',
-        top: 0, left: 0,
-        width: '100%', height: '100%',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         zIndex: 0,
         pointerEvents: 'none',
       }}
