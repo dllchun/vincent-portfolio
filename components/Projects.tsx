@@ -69,7 +69,7 @@ export default function Projects() {
   }, [])
 
   return (
-    <section id="projects" ref={sectionRef} className="section-padding px-6 relative">
+    <section id="projects" ref={sectionRef} className="section-padding px-6 relative bg-background/85">
       <div className="absolute inset-0 gradient-mesh pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto">

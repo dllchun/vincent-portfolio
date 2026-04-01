@@ -38,7 +38,7 @@ export default function About() {
     <section
       id="about"
       ref={sectionRef}
-      className="section-padding px-6 relative overflow-hidden"
+      className="section-padding px-6 relative overflow-hidden bg-background/85"
     >
       {/* Gradient mesh */}
       <div className="absolute inset-0 gradient-mesh pointer-events-none" />

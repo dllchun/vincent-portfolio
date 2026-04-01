@@ -15,7 +15,7 @@ const tagColors = ['bg-violet-500/10 border-violet-500/20 text-violet-300', 'bg-
 
 export default function Blog({ posts }: { posts: Post[] }) {
   return (
-    <section id="blog" className="section-padding px-6 relative">
+    <section id="blog" className="section-padding px-6 relative bg-background/85">
       <div className="absolute inset-0 gradient-mesh-alt pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto">
