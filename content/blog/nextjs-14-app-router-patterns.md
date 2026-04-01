@@ -1,13 +1,13 @@
 ---
-title: "Next.js 14 App Router: Patterns That Actually Work in Production"
+title: "Next.js 15 App Router: Patterns That Actually Work in Production"
 date: "2026-02-28"
-excerpt: "After shipping multiple Next.js 14 apps with the App Router, here are the patterns that work, the gotchas to avoid, and the mental model that makes it all click."
+excerpt: "After shipping multiple Next.js 15 apps with the App Router, here are the patterns that work, the gotchas to avoid, and the mental model that makes it all click."
 tags: ["Next.js", "React", "TypeScript", "Web Dev"]
 ---
 
-# Next.js 14 App Router: Patterns That Actually Work in Production
+# Next.js 15 App Router: Patterns That Actually Work in Production
 
-After shipping multiple production apps with Next.js 14's App Router, I've developed strong opinions about what works and what doesn't. Here's the distilled wisdom.
+After shipping multiple production apps with Next.js 15's App Router, I've developed strong opinions about what works and what doesn't. Here's the distilled wisdom.
 
 ## The Mental Model Shift
 

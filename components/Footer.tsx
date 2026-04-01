@@ -1,18 +1,16 @@
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
-
   return (
-    <footer className="relative border-t border-white/5 bg-bg-primary py-10">
+    <footer className="relative border-t border-border bg-background py-10">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-1">
           <span className="font-syne text-xl font-bold text-text-primary">V</span>
-          <span className="font-syne text-xl font-bold text-accent">.</span>
+          <span className="font-syne text-xl font-bold gradient-text">.</span>
         </div>
 
         {/* Copyright */}
         <p className="text-text-secondary text-sm font-mono">
-          &copy; {currentYear} Vincent. Built with Next.js + Three.js.
+          &copy; {new Date().getFullYear()} Vincent. Built with Next.js + Three.js.
         </p>
 
         {/* Back to top */}

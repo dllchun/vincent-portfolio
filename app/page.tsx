@@ -9,7 +9,7 @@ import Contact from '@/components/Contact'
 import Footer from '@/components/Footer'
 import { getAllPosts } from '@/lib/mdx'
 
-const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
+const ScrollThreeScene = dynamic(() => import('@/components/ScrollThreeScene'), {
   ssr: false,
   loading: () => null,
 })
@@ -19,10 +19,10 @@ export default async function Home() {
 
   return (
     <main className="relative">
-      {/* Fixed 3D background canvas */}
-      <ThreeCanvas />
+      {/* Scroll-driven 3D background */}
+      <ScrollThreeScene />
 
-      {/* Page content above canvas */}
+      {/* Page content */}
       <div className="relative z-10">
         <Navigation />
         <Hero />

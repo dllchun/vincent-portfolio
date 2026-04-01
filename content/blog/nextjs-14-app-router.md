@@ -1,14 +1,14 @@
 ---
-title: "Next.js 14 App Router: Everything You Need to Know"
+title: "Next.js 15 App Router: Everything You Need to Know"
 date: "2025-02-20"
-excerpt: "A comprehensive guide to Next.js 14's App Router, covering server components, streaming, parallel routes, and the patterns that will define modern React development."
+excerpt: "A comprehensive guide to Next.js 15's App Router, covering server components, streaming, parallel routes, and the patterns that will define modern React development."
 readTime: 10
 tags: ["Next.js", "React", "Web Development"]
 ---
 
-# Next.js 14 App Router: Everything You Need to Know
+# Next.js 15 App Router: Everything You Need to Know
 
-Next.js 14 with the App Router represents the biggest paradigm shift in React development since hooks. After building several production applications with it, here's what you need to know.
+Next.js 15 with the App Router represents the biggest paradigm shift in React development since hooks. After building several production applications with it, here's what you need to know. Next.js 15 also introduced improvements to the caching model, making data fetching more predictable and opt-in by default.
 
 ## The Mental Model Shift
 
@@ -101,4 +101,4 @@ After building with App Router in production:
 3. **Use Route Groups** — `(marketing)` and `(app)` help organize without affecting URLs
 4. **Embrace TypeScript** — the type safety with `generateStaticParams` is excellent
 
-The App Router is the future of React development. The learning curve is real, but the payoff in performance and developer experience is worth it.
+The App Router is the future of React development. The learning curve is real, but the payoff in performance and developer experience is worth it. With Next.js 15's improved caching defaults and Turbopack stability, it has never been a better time to migrate.
