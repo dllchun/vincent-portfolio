@@ -19,7 +19,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="section-padding px-6 relative overflow-hidden bg-background/85">
+    <section id="contact" className="section-padding px-6 relative z-10 overflow-hidden bg-[#050816]/90 backdrop-blur-sm">
       <div className="absolute inset-0 gradient-mesh pointer-events-none" />
 
       <div className="relative max-w-4xl mx-auto text-center">

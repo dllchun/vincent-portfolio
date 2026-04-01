@@ -71,7 +71,7 @@ export default function Skills() {
   }, [])
 
   return (
-    <section id="skills" ref={sectionRef} className="section-padding px-6 relative bg-background/85">
+    <section id="skills" ref={sectionRef} className="section-padding px-6 relative z-10 bg-[#050816]/90 backdrop-blur-sm">
       <div className="absolute inset-0 gradient-mesh-alt pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto">
