@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-syne: 'Syne', sans-serif;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111114;
+  --bg-card: #16161a;
+  --accent: #00e5cc;
+  --text-primary: #ededec;
+  --text-secondary: #8a8a8e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #ededec;
+  font-family: var(--font-inter);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #00e5cc33;
+  color: #00e5cc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00e5cc44;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00e5cc66;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #00e5cc, #0088ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient border utility used by card components */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 229, 204, 0.3), rgba(0, 229, 204, 0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glow text effect */
+.glow {
+  text-shadow: 0 0 20px rgba(0, 229, 204, 0.4), 0 0 40px rgba(0, 229, 204, 0.2);
+}
+
+/* Card glow */
+.card-glow {
+  box-shadow: 0 0 0 1px #2a2a2a, 0 4px 24px rgba(0, 229, 204, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 0 1px #00e5cc44, 0 8px 40px rgba(0, 229, 204, 0.12);
+}
+
+/* Text stroke */
+.text-stroke {
+  -webkit-text-stroke: 1px #00e5cc;
+  color: transparent;
+}
+
+/* Section padding */
+.section-padding {
+  padding: 7rem 0;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 4rem 0;
+  }
+}
